@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+
+    traefik:
+        build: traefik
+        restart: always
+        environment:
+            # 在此填写阿里云 ACCESS_KEY 和 SECRET_KEY
+            - ALICLOUD_ACCESS_KEY=
+            - ALICLOUD_SECRET_KEY=
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - /etc/localtime:/etc/localtime:ro
+            - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+            - ./data/traefik:/var/lib/traefik
+
+    halo:
+        build: halo
+        restart: always
+        depends_on:
+            - traefik
+        volumes:
+            - ./data/halo:/root/.halo
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.halo.loadbalancer.server.port=8090

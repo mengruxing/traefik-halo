@@ -1,0 +1,44 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  filePath: "/var/lib/traefik/traefik.log"
+
+accessLog:
+  filePath: "/var/lib/traefik/access.log"
+  bufferingSize: 100
+
+entryPoints:
+  http:
+    address: :80
+  https:
+    address: :443
+
+api:
+  insecure: true
+
+providers:
+  docker:
+    exposedByDefault: false
+    defaultRule: ""
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+certificatesResolvers:
+  aliyun:
+    acme:
+      email: "youremail@qq.com"
+      storage: /var/lib/traefik/acme.json
+      dnsChallenge:
+        provider: alidns
+        resolvers:
+        - "223.5.5.5:53"
+        - "223.6.6.6:53"
+  http:
+    acme:
+      email: "youremail@qq.com"
+      storage: /var/lib/traefik/acme.json
+      httpChallenge:
+        entryPoint: http

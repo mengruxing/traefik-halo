@@ -1,0 +1,69 @@
+
+# 将 yourdomain.com 替换为你的域名
+# 将 basic-auth 中 的 users 替换为你的用户名以及密码
+# basic-auth 使用 htpasswd 方式生成
+# htpasswd 使用方法: htpasswd -nb username password
+
+http:
+
+  middlewares:
+
+    basic-auth:
+      basicAuth:
+        users:
+          - "test:$apr1$JFJglnOd$yrAibbRaRAPRwl6MF5RzB1"
+
+    redirect-scheme:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    redirect-default:
+      redirectregex:
+        regex: "^http://.*/(.*)"
+        replacement: "http://www.yourdomain.com/${1}"
+
+  routers:
+
+    default:
+      entryPoints: http
+      rule: HostRegexp( `{host:.*}`)
+      priority: 1
+      middlewares:
+        - redirect-default
+        - redirect-scheme
+      service: nginx@docker
+
+    halo:
+      entryPoints: http
+      rule: Host(`yourdomain.com`) || Host(`www.yourdomain.com`)
+      priority: 3
+      middlewares:
+        - redirect-scheme
+      service: halo@docker
+
+    halo-https:
+      entryPoints: https
+      rule: Host(`yourdomain.com`) || Host(`www.yourdomain.com`)
+      priority: 3
+      service: halo@docker
+      tls:
+        certResolver: aliyun
+
+    traefik:
+      entryPoints: http
+      rule: Host(`traefik.yourdomain.com`)
+      priority: 3
+      middlewares:
+        - redirect-scheme
+      service: api@internal
+
+    traefik-https:
+      entryPoints: https
+      rule: Host(`traefik.yourdomain.com`)
+      priority: 3
+      middlewares:
+        - basic-auth
+      service: api@internal
+      tls:
+        certResolver: aliyun
